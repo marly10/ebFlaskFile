@@ -1,4 +1,8 @@
 from flask import Flask
+import requests
+from bs4 import BeautifulSoup
+
+
 
 # print a nice greeting.
 def say_hello(username = "World"):
@@ -14,16 +18,26 @@ instructions = '''
 home_link = '<p><a href="/">Back</a></p>\n'
 
 instructions2 = '''
-    <p><em>Hint</em>: Me adding new files.</p>\n'''
+    <p><em>Hint</em>: Me adding new filesSSS.</p>\n'''
 
 footer_text = '</body>\n</html>'
+
+page = requests.get("http://forecast.weather.gov/MapClick.php?lat=37.7772&lon=-122.4168")
+soup = BeautifulSoup(page.content, 'html.parser')
+seven_day = soup.find(id="seven-day-forecast")
+forecast_items = seven_day.find_all(class_="tombstone-container")
+tonight = forecast_items[0]
+
+period = tonight.find(class_="period-name").get_text()
+short_desc = tonight.find(class_="short-desc").get_text()
+temp = tonight.find(class_="temp").get_text()
 
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
 
 # add a rule for the index page.
 application.add_url_rule('/', 'index', (lambda: header_text +
-    say_hello() + instructions + instructions2 + footer_text))
+    say_hello() + instructions + instructions2 + footer_text  + period +'\n'+ short_desc +'\n' +temp))
 
 # add a rule when the page is accessed with a name appended to the site
 # URL.
